@@ -8,7 +8,7 @@ https://quadmeup.com
 License: GNU GPL v3
 */
 
-#include "PPMReader.h"
+#include "PPMReaderSTM32.h"
 #include "Arduino.h"
 
 #define CPU_SPEED_MULTIPLIER (F_CPU/8000000)
@@ -18,14 +18,16 @@ volatile int PPMReader::ppm[PPMREADER_PMM_CHANNEL_COUNT];
 volatile bool ppmReaderUseTimer = false;
 volatile uint32_t lastPacketUpdate = 0; 
 
-PPMReader::PPMReader(int pin, int interrupt, bool useTimer)
+PPMReader::PPMReader(int pin, bool useTimer)
 {
     _pin = pin;
-    _interrupt = interrupt;
     ppmReaderUseTimer = useTimer;
+}
 
+void PPMReader::begin()
+{
     pinMode(_pin, INPUT);
-    attachInterrupt(_interrupt, PPMReader::handler, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(_pin), PPMReader::handler, CHANGE);
 }
 
 int PPMReader::get(uint8_t channel)
@@ -59,8 +61,9 @@ void PPMReader::handler()
     int tmpVal;
 
     if (ppmReaderUseTimer) {
+/*      Incompatibility with stm32
         counter = TCNT1 * CPU_SPEED_MULTIPLIER;
-        TCNT1 = 0;
+        TCNT1 = 0; */
     } else {
         currentMicros = micros();
         counter = currentMicros - previousCounter;
@@ -79,7 +82,7 @@ void PPMReader::handler()
     { //servo values between 810 and 2210 will end up here
         tmpVal = counter + pulse;
         if (tmpVal > 810 && tmpVal < 2210) {
-            ppm[channel] = tmpVal;;
+            ppm[channel] = tmpVal;
         }
         channel++;
     }
