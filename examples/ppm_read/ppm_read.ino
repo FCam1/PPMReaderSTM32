@@ -1,23 +1,37 @@
-#include "PPMReader.h"
+#include "PPMReaderSTM32.h"
+/*
+  https://www.onetransistor.eu/2019/05/arduino-class-interrupts-and-callbacks.html
 
-PPMReader ppmReader(2, 0, false);
+*/
+
+PPMReader ppmReader(PD7, false);
 
 void setup()
 {
   Serial.begin(115200);
-  Serial.println("ready");
+
+  ppmReader.begin();
+  //pinMode(LED_BUILTIN, OUTPUT);
+
+  //ppmReader.begin(PD7);
+  //ppmReader.setCallback(writePinStateToSerial);
+
+  //while(!Serial.available());
+  // Serial.println("ready");
 }
 
 void loop()
 {
-
   int count;
-  while(ppmReader.get(count) != 0){  //print out the servo values
-    Serial.print(ppmReader.get(count));
-    Serial.print("  ");
+
+  while (ppmReader.get(count) != 0) { //print out the servo values
+
+    ppmReader.get(count);
+
+    Serial.print("["); Serial.print(count); Serial.print("]  "); Serial.println(ppmReader.get(count));
     count++;
   }
-  Serial.println("");
+  Serial.println("no or new entry ");
 
-  delay(500); //you can even use delays!!!
+  delay(5); //you can even use delays!!!
 }
